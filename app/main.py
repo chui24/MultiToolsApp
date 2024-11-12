@@ -1,14 +1,15 @@
 import tkinter as tk
 from tkinter import filedialog, messagebox, ttk
+from tkinterdnd2 import TkinterDnD, DND_FILES  # Importar módulo de arrastrar y soltar
 from PIL import Image, ImageTk
 from .qr_functions import generar_qr_url, generar_qr_imagen  # Importar funciones de QR
 from .styles import apply_styles  # Importar estilos
-import qrcode
-from .qr_functions import generar_qr_imagen  # Ya la estás importando correctamente
+from app.file_converter import word_to_pdf, pdf_to_word, validate_file_extension  # Importar funciones de conversión
 
 
-class QRCodeApp:
+class QRCodeApp(TkinterDnD.Tk):  # Heredamos de TkinterDnD para drag and drop
     def __init__(self, root):
+        super().__init__()
         self.root = root
         self.root.title("MultiToolsApp")
         self.root.geometry("600x400")
@@ -21,9 +22,8 @@ class QRCodeApp:
         self.setup_ui()
 
         # Definición de las fuentes
-        self.font_secondary = ("Lexend", 20)  # Aquí defines la fuente secundaria
-        self.primary_color = "#000000"  # Color primario, si es necesario
-
+        self.font_secondary = ("Lexend", 20)
+        self.primary_color = "#000000"
 
     def setup_ui(self):
         self.main_frame = tk.Frame(self.root, bg="#f0f4f8")
@@ -35,32 +35,98 @@ class QRCodeApp:
         self.right_frame = tk.Frame(self.main_frame, bg="#f0f4f8")
         self.right_frame.pack(side="right", padx=20)
 
-        self.label_bienvenida = tk.Label(self.left_frame, text="Seleccione el tipo de QR a generar", bg="#f0f4f8", font=("Helvetica", 16, "bold"))
+        # Menú para seleccionar herramientas de QR o conversión de archivos
+        self.label_bienvenida = tk.Label(self.left_frame, text="Seleccione una herramienta", bg="#f0f4f8", font=("Helvetica", 16, "bold"))
         self.label_bienvenida.pack(pady=20)
 
         self.opcion_seleccionada = tk.StringVar()
         self.opcion_menu = ttk.Combobox(self.left_frame, textvariable=self.opcion_seleccionada, state="readonly", font=("Helvetica", 12), width=25)
-        self.opcion_menu['values'] = ("Seleccionar opción", "Generar QR para URL", "Generar QR para Imagen")
+        self.opcion_menu['values'] = ("Seleccionar opción", "Generar QR", "Convertir archivos (Word/PDF)")
         self.opcion_menu.current(0)
         self.opcion_menu.pack(pady=10)
 
         self.btn_confirmar_opcion = ttk.Button(self.left_frame, text="Confirmar opción", command=self.mostrar_opciones_seleccionadas)
         self.btn_confirmar_opcion.pack(pady=10)
 
-        self.btn_regresar_menu = ttk.Button(self.left_frame, text="Volver al menú principal", command=self.volver_menu)
-        self.btn_regresar_menu.pack_forget()
-
-        self.frame_qr_preview = None
-
     def mostrar_opciones_seleccionadas(self):
         seleccion = self.opcion_seleccionada.get()
 
-        if seleccion == "Generar QR para URL":
-            self.mostrar_generar_qr_url()
-        elif seleccion == "Generar QR para Imagen":
-            self.mostrar_generar_qr_imagen()
+        if seleccion == "Generar QR":
+            # Lógica para mostrar opciones de QR
+            self.mostrar_opciones_qr()
+        elif seleccion == "Convertir archivos (Word/PDF)":
+            # Lógica para mostrar opciones de conversión de archivos
+            self.mostrar_opciones_conversion()
 
-    # Implementar el resto de métodos como antes...
+    def mostrar_opciones_qr(self):
+        # Aquí iría la lógica para mostrar las opciones de QR (ya existente)
+        pass
+
+    def mostrar_opciones_conversion(self):
+        # Limpiar opciones previas
+        for widget in self.right_frame.winfo_children():
+            widget.destroy()
+
+        # Menú para seleccionar el tipo de conversión
+        self.tipo_conversion = tk.StringVar()
+        self.tipo_conversion_menu = ttk.Combobox(self.right_frame, textvariable=self.tipo_conversion, state="readonly", font=("Helvetica", 12), width=25)
+        self.tipo_conversion_menu['values'] = ("Seleccionar tipo", "Word a PDF", "PDF a Word")
+        self.tipo_conversion_menu.current(0)
+        self.tipo_conversion_menu.pack(pady=10)
+
+        # Botón para seleccionar archivo
+        self.btn_seleccionar_archivo = ttk.Button(self.right_frame, text="Seleccionar archivo", command=self.seleccionar_archivo)
+        self.btn_seleccionar_archivo.pack(pady=10)
+
+        # Área para arrastrar y soltar archivos
+        self.drop_area = tk.Label(self.right_frame, text="Arrastra un archivo aquí", bg="lightgray", width=40, height=5)
+        self.drop_area.pack(pady=10)
+
+        # Configurar el área de drop para aceptar archivos
+        self.drop_area.drop_target_register(DND_FILES)
+        self.drop_area.dnd_bind('<<Drop>>', self.arrastrar_archivo)
+
+        # Etiqueta de archivo seleccionado
+        self.archivo_seleccionado_label = tk.Label(self.right_frame, text="", bg="#f0f4f8", font=("Helvetica", 12))
+        self.archivo_seleccionado_label.pack(pady=10)
+
+        # Botón para convertir archivo
+        self.btn_convertir = ttk.Button(self.right_frame, text="Convertir archivo", command=self.convertir_archivo)
+        self.btn_convertir.pack(pady=10)
+
+    def seleccionar_archivo(self):
+        # Seleccionar archivo del sistema
+        self.archivo_seleccionado = filedialog.askopenfilename()
+        self.archivo_seleccionado_label.config(text=f"Archivo seleccionado: {self.archivo_seleccionado}")
+
+    def arrastrar_archivo(self, event):
+        # Obtener archivo arrastrado
+        self.archivo_seleccionado = event.data
+        self.archivo_seleccionado_label.config(text=f"Archivo arrastrado: {self.archivo_seleccionado}")
+
+    def convertir_archivo(self):
+        tipo = self.tipo_conversion.get()
+        archivo = self.archivo_seleccionado
+
+        if tipo == "Word a PDF" and validate_file_extension(archivo, ".docx"):
+            output_path = filedialog.asksaveasfilename(defaultextension=".pdf", filetypes=[("PDF files", "*.pdf")])
+            word_to_pdf(archivo, output_path)
+            messagebox.showinfo("Conversión completada", "El archivo ha sido convertido a PDF correctamente.")
+        elif tipo == "PDF a Word" and validate_file_extension(archivo, ".pdf"):
+            output_path = filedialog.asksaveasfilename(defaultextension=".docx", filetypes=[("Word files", "*.docx")])
+            pdf_to_word(archivo, output_path)
+            messagebox.showinfo("Conversión completada", "El archivo ha sido convertido a Word correctamente.")
+        else:
+            messagebox.showerror("Error", "Tipo de archivo no compatible o no seleccionado correctamente.")
+
+
+def apply_styles(root):
+    # Aplicar estilos a la aplicación
+    style = ttk.Style(root)
+    style.configure('TButton', font=('Helvetica', 12), padding=10)
+
+
+
 
     def volver_menu(self):
         # Volver a la vista inicial

@@ -5,7 +5,7 @@ author: chuimachado (chuimachado@gmail.com)
 developed at: November 2024
 """
 
-from qr_code_app.main import QRCodeApp
+from app.main import QRCodeApp
 import tkinter as tk
 
 # Crear la ventana principal
