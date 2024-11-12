@@ -10,7 +10,7 @@ from .qr_functions import generar_qr_imagen  # Ya la estás importando correctam
 class QRCodeApp:
     def __init__(self, root):
         self.root = root
-        self.root.title("QR Code Generator")
+        self.root.title("MultiToolsApp")
         self.root.geometry("600x400")
         self.root.configure(bg="#f0f4f8")
 
