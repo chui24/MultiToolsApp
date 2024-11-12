@@ -39,7 +39,7 @@ Esta es una aplicación de escritorio diseñada para proporcionar una serie de h
    pip freeze > requirements.txt
    ```
 
-## Instalación de Tkinter
+4. Instalación de Tkinter
 
 
 - En Ubuntu/Debian:
