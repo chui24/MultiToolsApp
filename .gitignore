@@ -1,0 +1,11 @@
+# Ignorar archivos de configuración de editor (VSCode, Sublime, etc.)
+.vscode/
+.idea/
+
+# Ignorar archivos de log
+*.log
+
+# Ignorar archivos de compilación de Python
+*.pyc
+__pycache__/
+
