@@ -1,3 +1,10 @@
+"""
+This files contains the main call to run the application 
+
+author: chuimachado (chuimachado@gmail.com)
+developed at: November 2024
+"""
+
 from qr_code_app.main import QRCodeApp
 import tkinter as tk
 
