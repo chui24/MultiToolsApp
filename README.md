@@ -39,6 +39,15 @@ Esta es una aplicación de escritorio diseñada para proporcionar una serie de h
    pip freeze > requirements.txt
    ```
 
+## Instalación de Tkinter
+
+
+- En Ubuntu/Debian:
+  
+  ```bash
+  sudo apt-get install python3-tk
+
+
 4. Ejecuta la aplicación:
 
    ```bash
