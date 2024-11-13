@@ -1,3 +1,5 @@
+#qr_functions.py
+
 import qrcode
 from PIL import Image
 
